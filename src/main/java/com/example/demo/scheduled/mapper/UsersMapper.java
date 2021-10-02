@@ -18,6 +18,8 @@ package com.example.demo.scheduled.mapper;
 
 import com.example.demo.scheduled.entity.Users;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 /**
@@ -30,5 +32,9 @@ import java.util.List;
 public interface UsersMapper {
 
     List<Users> selectUsers();
+
+    Users selectByUserName(@Param("username") String username);
+
+    Integer insertUser(@Param("users") Users users);
 
 }

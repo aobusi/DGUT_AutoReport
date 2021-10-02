@@ -11,4 +11,12 @@
         select * from users where status = 1
     </select>
 
+    <select id="selectByUserName" resultType="com.example.demo.scheduled.entity.Users">
+        select * from users where status = 1 and username = #{username}
+    </select>
+
+    <insert id="insertUser" parameterType="com.example.demo.scheduled.entity.Users">
+        insert into users (username , password) values (#{users.username} , #{users.password})
+    </insert>
+
 </mapper>
