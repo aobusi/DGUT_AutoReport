@@ -48,9 +48,9 @@ public class AutoSubmitScheduled {
             String url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/illnessProtectionHome/state/home";
             //chromedriver本地文件位置
             // win
-            System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
+            //System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
             // linux
-            //System.setProperty("webdriver.chrome.driver" , "/usr/local/java/chromedriver");
+            System.setProperty("webdriver.chrome.driver" , "/usr/local/java/chromedriver");
             WebDriver driver = new ChromeDriver();
             driver.get(url);
             for (Users user : users) {

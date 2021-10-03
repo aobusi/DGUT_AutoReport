@@ -26,7 +26,7 @@ class DemoApplicationTests {
 
     @Test
     void testMain() {
-        String url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/illnessProtectionHome/state/home";
+/*        String url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/illnessProtectionHome/state/home";
         System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -48,10 +48,10 @@ class DemoApplicationTests {
         } catch (Exception e){
             System.out.println("e = " + e);
             driver.close();
-        }
+        }*/
     }
 
-    @Test
+/*    @Test
     void testYQFK() throws InterruptedException {
         System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
         WebDriver driver = new ChromeDriver();
@@ -77,12 +77,12 @@ class DemoApplicationTests {
         temperature.sendKeys(Keys.DELETE);
         //赋值
         temperature.sendKeys("36.7");
-    }
+    }*/
 
-    @Test
+/*    @Test
     void testSpring(){
         List<Users> users = usersMapper.selectUsers();
         System.out.println("users = " + users);
-    }
+    }*/
 
 }
