@@ -10,10 +10,12 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,66 +40,70 @@ public class AutoSubmitScheduled {
      *          浏览器驱动文件位置
      *          体温随机数
      *          微信通知(server酱)
+     *      由于对异常类型没做统计，所以用了分开的try来区分
      */
+    //@Scheduled(cron = "0 54 8 * * ? ")
     @Scheduled(cron = "0 0 6 * * ? ")
     public void autoScheduled(){
         List<Users> users = usersMapper.selectUsers();
+        String currnentUser = "";
         if (!users.isEmpty()){
-            log.info("开始给账号 " + 1 + " 打卡");
             //打卡地址
             String url = "https://cas.dgut.edu.cn/home/Oauth/getToken/appid/illnessProtectionHome/state/home";
-            //chromedriver本地文件位置
+            String newUrl = "https://yqfk.dgut.edu.cn/main";
+            //chromedriver本地文件位置，注意版本要与电脑上安装的chrome版本一致或相近
             // win
             //System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
             // linux
             System.setProperty("webdriver.chrome.driver" , "/usr/local/java/chromedriver");
             WebDriver driver = new ChromeDriver();
-            driver.get(url);
-            for (Users user : users) {
-                //执行登录
-                WebElement username = driver.findElement(By.id("username"));
-                WebElement password = driver.findElement(By.id("casPassword"));
-                WebElement loginBtn = driver.findElement(By.id("loginBtn"));
-                username.sendKeys(user.getUsername());
-                password.sendKeys(user.getPassword());
-                try {
+            try {
+                for (Users user : users) {
+                    currnentUser = user.getUsername();
+                    log.info("开始给账号 " + user.getUsername() + " 打卡");
+                    //“–no-sandbox” 让Chrome在root权限下跑
+                    //“–headless” 不用打开图形界面
+                    //不加此参数会报异常
+                    ChromeOptions options = new ChromeOptions();
+                    options.addArguments("--no-sandbox");
+                    options.addArguments("--disable-dev-shm-usage");
+                    options.addArguments("--headless");
+                    driver = new ChromeDriver(options);
+                    driver.get(url);
+                    WebElement username = driver.findElement(By.id("username"));
+                    WebElement password = driver.findElement(By.id("casPassword"));
+                    WebElement loginBtn = driver.findElement(By.id("loginBtn"));
+                    username.sendKeys(user.getUsername());
+                    password.sendKeys(user.getPassword());
                     loginBtn.click();
-                } catch (Exception e){
-                    notifyByServer(user.getSendKey() , failMessage);
-                    log.error("登录失败：" + user.getUsername() , e);
-                }
-                //执行打卡
-                String newUrl = "https://yqfk.dgut.edu.cn/main";
-                driver.get(newUrl);
-                //线程暂停，否则速度过快，下面会获取不到 element，时间无所谓，至少要保证页面接收过来
-                try {
+                    //打开打卡页面
+                    driver.get(newUrl);
+                    //线程暂停，否则速度过快，下面会获取不到 element，时间无所谓，至少要保证页面接收过来
                     Thread.sleep(3000);
-                } catch (Exception e){
-                    notifyByServer(user.getSendKey() , failMessage);
-                    log.error("线程休眠异常" , e);
-                }
-                //体温赋随机值
-                WebElement temperature = driver.findElement(By.xpath("//div[@class=\"myList___2zpNy\"]/div[27]/div[2]/div/div/textarea"));
-                //清除旧数据
-                //temperature.clear(); 此方法不知为何无效
-                temperature.sendKeys(Keys.CONTROL, "a");
-                temperature.sendKeys(Keys.DELETE);
-                //体温赋随机值 36.0~37.0
-                temperature.sendKeys(String.valueOf(generateRandomTempature()));
-                WebElement element = driver.findElement(By.linkText("提 交"));
-                try {
+                    WebElement temperature;
+                    //目前测试两人账号，两人账号页面不同，所以获取元素位置不同，获取不到直接报错
+                    try {
+                        temperature = driver.findElement(By.xpath("//div[@class=\"myList___2zpNy\"]/div[27]/div[2]/div/div/textarea"));
+                    } catch (Exception e){
+                        temperature = driver.findElement(By.xpath("//div[@class=\"myList___2zpNy\"]/div[29]/div[2]/div/div/textarea"));
+                    }
+                    //体温清除旧数据
+                    temperature.sendKeys(Keys.CONTROL, "a");
+                    temperature.sendKeys(Keys.DELETE);
+                    //体温赋随机值 36.0~37.0
+                    temperature.sendKeys(String.valueOf(generateRandomTempature()));
+                    WebElement element = driver.findElement(By.linkText("提 交"));
                     element.click();
-                } catch (Exception e){
-                    notifyByServer(user.getSendKey() , failMessage);
-                    log.error("提交失败：" + user.getUsername() , e);
-                }
-                //微信通知
-                try {
+                    //微信通知
                     notifyByServer(user.getSendKey() , successMessage);
-                } catch (Exception e){
-                    log.error("微信通知失败：" + user.getUsername() , e);
+                    //关闭
+                    driver.close();
                 }
-                //关闭
+            } catch (Exception e){
+                log.error("账号：" + currnentUser + "打卡异常" , e);
+            } finally {
+                //清除cookie，多账号登录
+                driver.manage().deleteAllCookies();
                 driver.close();
             }
         }
