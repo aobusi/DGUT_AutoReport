@@ -42,8 +42,8 @@ public class AutoSubmitScheduled {
      *          微信通知(server酱)
      *      由于对异常类型没做统计，所以用了分开的try来区分
      */
-    //@Scheduled(cron = "0 0 6 * * ? ")
-    @Scheduled(cron = "0 26 8 * * ? ")
+    //@Scheduled(cron = "0 26 8 * * ? ")
+    @Scheduled(cron = "0 0 6 * * ? ")
     public void autoScheduled(){
         List<Users> users = usersMapper.selectUsers();
         String currnentUser = "";
