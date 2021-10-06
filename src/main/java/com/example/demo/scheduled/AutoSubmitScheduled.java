@@ -42,8 +42,8 @@ public class AutoSubmitScheduled {
      *          微信通知(server酱)
      *      由于对异常类型没做统计，所以用了分开的try来区分
      */
-    //@Scheduled(cron = "0 54 8 * * ? ")
-    @Scheduled(cron = "0 0 6 * * ? ")
+    //@Scheduled(cron = "0 0 6 * * ? ")
+    @Scheduled(cron = "0 26 8 * * ? ")
     public void autoScheduled(){
         List<Users> users = usersMapper.selectUsers();
         String currnentUser = "";
@@ -56,18 +56,18 @@ public class AutoSubmitScheduled {
             //System.setProperty("webdriver.chrome.driver", "D:/cache/chromedriver.exe");
             // linux
             System.setProperty("webdriver.chrome.driver" , "/usr/local/java/chromedriver");
-            WebDriver driver = new ChromeDriver();
-            try {
-                for (Users user : users) {
+            //“–no-sandbox” 让Chrome在root权限下跑
+            //“–headless” 不用打开图形界面
+            //不加此参数会报异常
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--headless");
+            WebDriver driver = new ChromeDriver(options);
+            for (Users user : users) {
+                try {
                     currnentUser = user.getUsername();
                     log.info("开始给账号 " + user.getUsername() + " 打卡");
-                    //“–no-sandbox” 让Chrome在root权限下跑
-                    //“–headless” 不用打开图形界面
-                    //不加此参数会报异常
-                    ChromeOptions options = new ChromeOptions();
-                    options.addArguments("--no-sandbox");
-                    options.addArguments("--disable-dev-shm-usage");
-                    options.addArguments("--headless");
                     driver = new ChromeDriver(options);
                     driver.get(url);
                     WebElement username = driver.findElement(By.id("username"));
@@ -96,15 +96,13 @@ public class AutoSubmitScheduled {
                     element.click();
                     //微信通知
                     notifyByServer(user.getSendKey() , successMessage);
-                    //关闭
+                } catch (Exception e){
+                    log.error("账号：" + currnentUser + "打卡异常" , e);
+                } finally {
+                    //清除cookie，多账号登录
+                    driver.manage().deleteAllCookies();
                     driver.close();
                 }
-            } catch (Exception e){
-                log.error("账号：" + currnentUser + "打卡异常" , e);
-            } finally {
-                //清除cookie，多账号登录
-                driver.manage().deleteAllCookies();
-                driver.close();
             }
         }
     }
