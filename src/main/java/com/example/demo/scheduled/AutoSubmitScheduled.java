@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,6 +46,8 @@ public class AutoSubmitScheduled {
     //@Scheduled(cron = "0 26 8 * * ? ")
     @Scheduled(cron = "0 3 0 * * ? ")
     public void autoScheduled(){
+        Date date = new Date();
+        System.out.println("today : " + date);
         List<Users> users = usersMapper.selectUsers();
         String currnentUser = "";
         if (!users.isEmpty()){
